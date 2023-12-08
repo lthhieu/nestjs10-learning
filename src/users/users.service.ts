@@ -13,10 +13,11 @@ export class UsersService {
     let hash = hashSync(plainText, salt);
     return hash
   }
-  async create(email: string, password: string) {
-    let hash = this.hashPassword(password)
-    let user = await this.userModel.create({ email, password: hash })
+  async create(createUserDto: CreateUserDto) {
+    let hash = this.hashPassword(createUserDto.password)
+    let user = await this.userModel.create({ email: createUserDto.email, password: hash })
     return user
+    // ========
     // const createdUser = new this.userModel({
     //   email, password
     // });

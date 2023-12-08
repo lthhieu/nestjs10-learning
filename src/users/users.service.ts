@@ -15,7 +15,7 @@ export class UsersService {
   }
   async create(createUserDto: CreateUserDto) {
     let hash = this.hashPassword(createUserDto.password)
-    let user = await this.userModel.create({ email: createUserDto.email, password: hash })
+    let user = await this.userModel.create({ email: createUserDto.email, password: hash, createdAt: new Date().toString() })
     return user
     // ========
     // const createdUser = new this.userModel({
@@ -30,15 +30,16 @@ export class UsersService {
 
   async findOne(id: string) {
     try {
-      let user = await this.userModel.findById(id)
+      let user = await this.userModel.findById(id).select('-password')
       return user
     } catch (e) {
       return 'Not found user'
     }
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    let user = await this.userModel.updateOne({ _id: id }, { ...updateUserDto })
+    return user
   }
 
   remove(id: string) {

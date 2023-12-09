@@ -24,8 +24,9 @@ export class UsersService {
     // return createdUser.save();
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    let users = await this.userModel.find().select('-password')
+    return users
   }
 
   async findOne(id: string) {
@@ -38,11 +39,20 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    let user = await this.userModel.updateOne({ _id: id }, { ...updateUserDto })
-    return user
+    try {
+      let user = await this.userModel.updateOne({ _id: id }, { ...updateUserDto })
+      return user
+    } catch (e) {
+      return 'Not found user'
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      let user = await this.userModel.deleteOne({ _id: id })
+      return user
+    } catch (e) {
+      return 'Not found user'
+    }
   }
 }

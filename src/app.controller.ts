@@ -10,6 +10,11 @@ export class AppController {
   constructor(private readonly appService: AppService,
     private configService: ConfigService,
     private authService: AuthService) { }
+  @Public()
+  @Get()
+  hiWorld() {
+    return this.appService.getHello(this.configService.get<number>('PORT'))
+  }
 
   @Public()
   @UseGuards(LocalAuthGuard)

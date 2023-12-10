@@ -23,4 +23,10 @@ export class AuthService {
             access_token: this.jwtService.sign(payload),
         };
     }
+    async socialMedia(username: string, type: string) {
+        const payload = { username, type };
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
+    }
 }

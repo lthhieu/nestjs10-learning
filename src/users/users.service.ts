@@ -37,7 +37,7 @@ export class UsersService {
       let user = await this.userModel.findById(id).select('-password')
       return user
     } catch (e) {
-      return 'Not found user'
+      return 'Not found user findOne function'
     }
   }
 
@@ -51,7 +51,7 @@ export class UsersService {
       let user = await this.userModel.updateOne({ _id: id }, { ...updateUserDto })
       return user
     } catch (e) {
-      return 'Not found user'
+      return 'Not found user update function'
     }
   }
 
@@ -60,7 +60,7 @@ export class UsersService {
       let user = await this.userModel.softDelete({ _id: id })
       return user
     } catch (e) {
-      return 'Not found user'
+      return 'Not found user remove function'
     }
   }
 
@@ -69,7 +69,16 @@ export class UsersService {
       let user = await this.userModel.restore({ _id: id })
       return user
     } catch (e) {
-      return 'Not found user'
+      return 'Not found user restore function'
+    }
+  }
+
+  async findAllDeleted() {
+    try {
+      let users = await this.userModel.findDeleted()
+      return users
+    } catch (e) {
+      return 'hieu'
     }
   }
 }

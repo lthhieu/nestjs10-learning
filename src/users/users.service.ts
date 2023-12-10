@@ -63,4 +63,13 @@ export class UsersService {
       return 'Not found user'
     }
   }
+
+  async restore(id: string) {
+    try {
+      let user = await this.userModel.restore({ _id: id })
+      return user
+    } catch (e) {
+      return 'Not found user'
+    }
+  }
 }

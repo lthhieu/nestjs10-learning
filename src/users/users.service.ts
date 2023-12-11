@@ -18,13 +18,8 @@ export class UsersService {
   }
   async create(createUserDto: CreateUserDto) {
     let hash = this.hashPassword(createUserDto.password)
-    let user = await this.userModel.create({ email: createUserDto.email, password: hash, createdAt: new Date().toString() })
+    let user = await this.userModel.create({ email: createUserDto.email, password: hash })
     return user
-    // ========
-    // const createdUser = new this.userModel({
-    //   email, password
-    // });
-    // return createdUser.save();
   }
 
   async findAll() {

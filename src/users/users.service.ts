@@ -73,7 +73,7 @@ export class UsersService {
       let users = await this.userModel.findDeleted()
       return users
     } catch (e) {
-      return 'hieu'
+      return e
     }
   }
 }

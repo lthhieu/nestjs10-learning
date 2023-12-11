@@ -10,6 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
+  //cors
+  app.enableCors({
+    origin: configService.get<string>('REACT_URL')
+  });
   // global jwtAuthGuard in main.ts
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));

@@ -4,5 +4,4 @@ export class CreateUserDto {
     email: string;
     @IsNotEmpty()
     password: string;
-    createdAt: Date
 }

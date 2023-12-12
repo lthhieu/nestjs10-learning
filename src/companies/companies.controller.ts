@@ -15,8 +15,8 @@ export class CompaniesController {
   }
 
   @Get()
-  findAll() {
-    return this.companiesService.findAll();
+  findAll(@Query('page') page: string, @Query('limit') limit: string, @Query() queryString: string) {
+    return this.companiesService.findAll(+page, +limit, queryString);
   }
 
   @Get('info')

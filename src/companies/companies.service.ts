@@ -5,7 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Company, CompanyDocument } from './schemas/company.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
-
+import aqp from 'api-query-params';
+import { isEmpty } from 'class-validator';
 @Injectable()
 export class CompaniesService {
   constructor(@InjectModel(Company.name) private companyModel: SoftDeleteModel<CompanyDocument>) { }
@@ -16,9 +17,37 @@ export class CompaniesService {
     return newCompany
   }
 
-  async findAll() {
-    let companies = await this.companyModel.find()
-    return companies
+  async findAll(page: number, limit: number, queryString: string) {
+    let { filter, population } = aqp(queryString)
+    let { sort }: { sort: any } = aqp(queryString)
+    delete filter.page
+    delete filter.limit
+
+    let defaultLimit = +limit ? +limit : 10
+    let offset = (+page - 1) * (+defaultLimit)
+
+    const totalItems = (await this.companyModel.find(filter).skip(offset)
+      .limit(defaultLimit)).length
+    const totalPages = Math.ceil(totalItems / defaultLimit)
+
+    if (isEmpty(sort)) {
+      sort = "-updatedAt"
+    }
+    let companies = await this.companyModel.find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort)
+      .populate(population)
+      .exec()
+    return {
+      meta: {
+        current: page, //trang hiện tại
+        pageSize: defaultLimit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result: companies
+    }
   }
 
   async findOne(id: string) {

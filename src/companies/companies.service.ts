@@ -7,12 +7,16 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
+import mongoose from 'mongoose';
 @Injectable()
 export class CompaniesService {
   constructor(@InjectModel(Company.name) private companyModel: SoftDeleteModel<CompanyDocument>) { }
   async create(createCompanyDto: CreateCompanyDto, user: IUser) {
     let newCompany = await this.companyModel.create({
-      ...createCompanyDto, createdBy: user.email
+      ...createCompanyDto, createdBy: {
+        _id: user._id,
+        email: user.email
+      }
     })
     return newCompany
   }
@@ -63,7 +67,12 @@ export class CompaniesService {
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
     try {
-      let company = await this.companyModel.updateOne({ _id: id }, { ...updateCompanyDto, updatedBy: user.email })
+      let company = await this.companyModel.updateOne({ _id: id }, {
+        ...updateCompanyDto, updatedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      })
       return company
     } catch (e) {
       return 'Not found company update function'
@@ -74,7 +83,12 @@ export class CompaniesService {
     try {
       let company = await this.companyModel.softDelete({ _id: id })
       if (company) {
-        await this.companyModel.updateOne({ _id: id }, { deletedBy: user.email })
+        await this.companyModel.updateOne({ _id: id }, {
+          deletedBy: {
+            _id: user._id,
+            email: user.email
+          }
+        })
         return company
       }
     } catch (e) {
@@ -84,7 +98,10 @@ export class CompaniesService {
   async restore(id: string) {
     try {
       let company = await this.companyModel.restore({ _id: id })
-      return company
+      if (company) {
+        await this.companyModel.updateOne({ _id: id }, { $unset: { deletedBy: 1 } })
+        return company
+      }
     } catch (e) {
       return 'Not found company restore function'
     }

@@ -13,12 +13,21 @@ export class Company {
     address: string;
     @Prop()
     description: string;
-    @Prop()
-    createdBy: string;
-    @Prop()
-    updatedBy: string;
-    @Prop()
-    deletedBy: string;
+    @Prop({ type: Object })
+    createdBy: {
+        _id: mongoose.Schema.Types.ObjectId,
+        email: string
+    };
+    @Prop({ type: Object })
+    updatedBy: {
+        _id: mongoose.Schema.Types.ObjectId,
+        email: string
+    };
+    @Prop({ type: Object })
+    deletedBy: {
+        _id: mongoose.Schema.Types.ObjectId,
+        email: string
+    };
     // inside the class definition
     // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
     // createdBy: User;

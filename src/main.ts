@@ -11,19 +11,23 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
+  // global jwtAuthGuard in main.ts
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
+
   //interceptor
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+
   //cors
   app.enableCors({
     origin: configService.get<string>('REACT_URL')
   });
-  // global jwtAuthGuard in main.ts
-  const reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
+
   //===========
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
+
   //auto-validation
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(port);

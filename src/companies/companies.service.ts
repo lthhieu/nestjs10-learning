@@ -26,8 +26,7 @@ export class CompaniesService {
     let defaultLimit = +limit ? +limit : 10
     let offset = (+page - 1) * (+defaultLimit)
 
-    const totalItems = (await this.companyModel.find(filter).skip(offset)
-      .limit(defaultLimit)).length
+    const totalItems = (await this.companyModel.find(filter)).length
     const totalPages = Math.ceil(totalItems / defaultLimit)
 
     if (isEmpty(sort)) {

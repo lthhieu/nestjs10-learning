@@ -1,7 +1,7 @@
 import { Controller, Get, Post, UseGuards, Request, Body } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
-import { Public } from 'src/decorators/customize';
+import { Public, ResponseMessage } from 'src/decorators/customize';
 
 @Controller('auth')
 export class AuthController {
@@ -11,6 +11,7 @@ export class AuthController {
     @Public()
     @UseGuards(LocalAuthGuard)
     @Post('login')
+    @ResponseMessage('Login successfully')
     async login(@Request() req) {
         return this.authService.login(req.user);
     }
@@ -24,6 +25,7 @@ export class AuthController {
     }
 
     @Get('profile')
+    @ResponseMessage('Fetch info user successfully')
     getProfile(@Request() req) {
         return req.user;
     }

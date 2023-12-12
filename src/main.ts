@@ -5,11 +5,14 @@ import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
+  //interceptor
+  app.useGlobalInterceptors(new TransformInterceptor());
   //cors
   app.enableCors({
     origin: configService.get<string>('REACT_URL')

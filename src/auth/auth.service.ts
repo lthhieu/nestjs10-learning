@@ -3,10 +3,13 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/users.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
+import ms from 'ms';
 @Injectable()
 export class AuthService {
     constructor(private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private configService: ConfigService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -22,14 +25,24 @@ export class AuthService {
     async login(user: IUser) {
         const { _id, email, name, role } = user
         const payload = { _id, email, name, role, sub: 'token login', iss: 'from server' };
+        const refresh_token = this.createRefreshToken(payload)
+
         return {
             access_token: this.jwtService.sign(payload),
-            _id, email, name, role
+            refresh_token,
+            user: { _id, email, name, role }
         };
     }
     async register(registerUserDto: RegisterUserDto) {
         let newUser = await this.usersService.register(registerUserDto)
         return newUser
+    }
+    createRefreshToken = (payload: any) => {
+        const refreshToken = this.jwtService.sign(payload, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+            expiresIn: ms(this.configService.get<string>('REFRESH_TOKEN_EXPIRE')) / 1000
+        })
+        return refreshToken
     }
     async socialMedia(username: string, type: string) {
         const payload = { username, type };

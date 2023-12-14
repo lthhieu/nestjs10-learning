@@ -160,4 +160,14 @@ export class UsersService {
       _id: user?._id
     }
   }
+  updateRefreshToken = async (refreshToken: string, _id: string) => {
+    try {
+      let updatedUser = await this.userModel.updateOne({ _id }, {
+        refreshToken
+      })
+      return updatedUser
+    } catch (e) {
+      return 'Not found user update function'
+    }
+  }
 }

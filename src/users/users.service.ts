@@ -170,4 +170,7 @@ export class UsersService {
       return 'Not found user update function'
     }
   }
+  findUserByToken = async (refreshToken: string) => {
+    return await this.userModel.findOne({ refreshToken }).select('-password')
+  }
 }

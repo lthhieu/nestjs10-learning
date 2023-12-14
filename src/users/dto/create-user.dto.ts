@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsNotEmptyObject, IsObject, Max, Min, ValidateNested } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, Max, Min, ValidateNested } from 'class-validator';
 import mongoose from 'mongoose';
 class CompanyDTO {
     @IsNotEmpty()
@@ -48,7 +48,8 @@ export class RegisterUserDto {
     @IsNotEmpty()
     name: string;
     @IsNotEmpty()
-    @Min(6)
+    @IsInt()
+    @Min(1)
     @Max(150)
     age: number;
     @IsNotEmpty()

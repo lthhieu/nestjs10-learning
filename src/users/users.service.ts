@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
@@ -7,6 +7,7 @@ import { genSaltSync, hashSync, compareSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
+import { IUser } from './users.interface';
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) { }
@@ -18,10 +19,20 @@ export class UsersService {
   comparePassword = (password: string, hash: string) => {
     return compareSync(password, hash);
   }
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, user: IUser) {
+    let checkEmail = await this.findOneByUsername(createUserDto.email)
+    if (checkEmail) {
+      throw new BadRequestException('Email is existed')
+    }
     let hash = this.hashPassword(createUserDto.password)
-    let user = await this.userModel.create({ email: createUserDto.email, password: hash })
-    return user
+    let createNewUser = await this.userModel.create({
+      ...createUserDto, password: hash, createdBy: {
+        _id: user._id, email: user.email
+      }
+    })
+    return {
+      _id: createNewUser?._id
+    }
   }
 
   async findAll(page: number, limit: number, queryString: string) {
@@ -36,7 +47,7 @@ export class UsersService {
     if (isEmpty(sort)) {
       sort = "-updatedAt"
     }
-    let users = await this.userModel.find(filter)
+    let users = await this.userModel.find(filter).select('-password')
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort)
@@ -53,7 +64,10 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: IUser) {
+    if (id !== user._id) {
+      throw new BadRequestException('Cannot watch other info')
+    }
     try {
       let user = await this.userModel.findById(id).select('-password')
       return user
@@ -67,19 +81,38 @@ export class UsersService {
     return user
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
+    let checkEmail = await this.findOneByUsername(updateUserDto.email)
+    if (JSON.stringify(checkEmail?._id) !== JSON.stringify(id)) {
+      throw new BadRequestException('Email is used')
+    }
     try {
-      let user = await this.userModel.updateOne({ _id: id }, { ...updateUserDto })
-      return user
+      let updatedUser = await this.userModel.updateOne({ _id: id }, {
+        ...updateUserDto, updatedBy: {
+          _id: user._id, email: user.email
+        }
+      })
+      return updatedUser
     } catch (e) {
       return 'Not found user update function'
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: IUser) {
+    if (id === user._id) {
+      throw new BadRequestException('Cannot delete yourself')
+    }
     try {
-      let user = await this.userModel.softDelete({ _id: id })
-      return user
+      let deletedUser = await this.userModel.softDelete({ _id: id })
+      if (deletedUser) {
+        await this.userModel.updateOne({ _id: id }, {
+          deletedBy: {
+            _id: user._id,
+            email: user.email
+          }
+        })
+        return deletedUser
+      }
     } catch (e) {
       return 'Not found user remove function'
     }
@@ -87,8 +120,11 @@ export class UsersService {
 
   async restore(id: string) {
     try {
-      let user = await this.userModel.restore({ _id: id })
-      return user
+      let restoreUser = await this.userModel.restore({ _id: id })
+      if (restoreUser) {
+        await this.userModel.updateOne({ _id: id }, { $unset: { deletedBy: 1 } })
+        return restoreUser
+      }
     } catch (e) {
       return 'Not found user restore function'
     }
@@ -97,9 +133,31 @@ export class UsersService {
   async findAllDeleted() {
     try {
       let users = await this.userModel.findDeleted()
+      // Convert object to string
+      const jsonString = JSON.stringify(users);
+
+      // Convert string back to plain object
+      const rawObject = JSON.parse(jsonString);
+      if (users) {
+        return rawObject.map(item => {
+          delete item.password
+          return item
+        })
+      }
       return users
     } catch (e) {
       return e
+    }
+  }
+  async register(registerUserDto: RegisterUserDto) {
+    let checkEmail = await this.findOneByUsername(registerUserDto.email)
+    if (checkEmail) {
+      throw new BadRequestException('Email is existed')
+    }
+    let hash = this.hashPassword(registerUserDto.password)
+    let user = await this.userModel.create({ ...registerUserDto, password: hash, role: 'USER' })
+    return {
+      _id: user?._id
     }
   }
 }

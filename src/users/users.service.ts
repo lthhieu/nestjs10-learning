@@ -70,6 +70,13 @@ export class UsersService {
     }
     try {
       let user = await this.userModel.findById(id).select('-password')
+      //@ts-ignore
+      if (user?.isDeleted) {
+        return 'User is deleted'
+      }
+      if (!user) {
+        return null
+      }
       return user
     } catch (e) {
       return 'Not found user findOne function'

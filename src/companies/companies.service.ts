@@ -7,7 +7,6 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
-import mongoose from 'mongoose';
 @Injectable()
 export class CompaniesService {
   constructor(@InjectModel(Company.name) private companyModel: SoftDeleteModel<CompanyDocument>) { }
@@ -56,12 +55,16 @@ export class CompaniesService {
   async findOne(id: string) {
     try {
       let company = await this.companyModel.findById(id)
+      //@ts-ignore
+      if (company?.isDeleted) {
+        return 'Company is deleted'
+      }
       if (!company) {
-        return 'Not found company findOne function'
+        return null
       }
       return company
     } catch (e) {
-      return 'Not found company findOne function'
+      return null
     }
   }
 

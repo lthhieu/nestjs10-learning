@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsEmail, IsInt, IsNotEmpty, IsNotEmptyObject, IsObject, Max, Min, ValidateNested } from 'class-validator';
 import mongoose from 'mongoose';
-class CompanyDTO {
+export class CompanyDTO {
     @IsNotEmpty()
     _id: mongoose.Schema.Types.ObjectId;
 

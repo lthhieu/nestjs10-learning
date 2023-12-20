@@ -27,6 +27,8 @@ export class Job {
     @Prop()
     description: string
     @Prop()
+    logo: string
+    @Prop()
     startDate: Date
     @Prop()
     endDate: Date

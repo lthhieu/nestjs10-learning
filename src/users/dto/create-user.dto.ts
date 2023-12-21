@@ -7,6 +7,9 @@ export class CompanyDTO {
 
     @IsNotEmpty()
     name: string;
+
+    @IsNotEmpty()
+    logo: string;
 }
 export class CreateUserDto {
     @IsEmail()

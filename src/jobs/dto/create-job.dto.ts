@@ -31,9 +31,6 @@ export class CreateJobDto {
     description: string;
 
     @IsNotEmpty()
-    logo: string;
-
-    @IsNotEmpty()
     @Transform(({ value }) => new Date(value))
     @IsDate()
     startDate: Date;

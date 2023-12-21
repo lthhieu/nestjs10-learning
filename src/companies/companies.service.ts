@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -7,6 +7,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/users.interface';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
+import mongoose from 'mongoose';
 @Injectable()
 export class CompaniesService {
   constructor(@InjectModel(Company.name) private companyModel: SoftDeleteModel<CompanyDocument>) { }
@@ -53,22 +54,24 @@ export class CompaniesService {
   }
 
   async findOne(id: string) {
-    try {
-      let company = await this.companyModel.findById(id)
-      //@ts-ignore
-      if (company?.isDeleted) {
-        return 'Company is deleted'
-      }
-      if (!company) {
-        return null
-      }
-      return company
-    } catch (e) {
-      return null
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
     }
+    let company = await this.companyModel.findById(id)
+    //@ts-ignore
+    if (company?.isDeleted) {
+      throw new BadRequestException('Company is deleted')
+    }
+    if (!company) {
+      throw new BadRequestException('Cannot found company')
+    }
+    return company
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let company = await this.companyModel.updateOne({ _id: id }, {
         ...updateCompanyDto, updatedBy: {
@@ -83,6 +86,9 @@ export class CompaniesService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let company = await this.companyModel.softDelete({ _id: id })
       if (company) {
@@ -99,6 +105,9 @@ export class CompaniesService {
     }
   }
   async restore(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let company = await this.companyModel.restore({ _id: id })
       if (company) {

@@ -9,6 +9,7 @@ import { CompaniesService } from 'src/companies/companies.service';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
 import dayjs from 'dayjs';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class JobsService {
@@ -74,22 +75,24 @@ export class JobsService {
   }
 
   async findOne(id: string) {
-    try {
-      let job = await this.jobModel.findById(id)
-      //@ts-ignore
-      if (job?.isDeleted) {
-        return 'Job is deleted'
-      }
-      if (!job) {
-        return null
-      }
-      return job
-    } catch (e) {
-      return null
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
     }
+    let job = await this.jobModel.findById(id)
+    //@ts-ignore
+    if (job?.isDeleted) {
+      throw new BadRequestException('Job is deleted')
+    }
+    if (!job) {
+      throw new BadRequestException('Cannot found job')
+    }
+    return job
   }
 
   async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     let checkName = await this.findOneByName(updateJobDto.name)
     if (JSON.stringify(checkName?._id) !== JSON.stringify(id)) {
       throw new BadRequestException('Name is used')
@@ -111,6 +114,9 @@ export class JobsService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let deletedJob = await this.jobModel.softDelete({ _id: id })
       if (deletedJob) {
@@ -137,6 +143,9 @@ export class JobsService {
   }
 
   async restore(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let job = await this.jobModel.restore({ _id: id })
       if (job) {

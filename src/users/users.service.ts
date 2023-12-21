@@ -8,6 +8,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
 import { IUser } from './users.interface';
+import mongoose from 'mongoose';
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) { }
@@ -65,22 +66,22 @@ export class UsersService {
   }
 
   async findOne(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     if (id !== user._id) {
       throw new BadRequestException('Cannot watch other info')
     }
-    try {
-      let user = await this.userModel.findById(id).select('-password')
-      //@ts-ignore
-      if (user?.isDeleted) {
-        return 'User is deleted'
-      }
-      if (!user) {
-        return null
-      }
-      return user
-    } catch (e) {
-      return 'Not found user findOne function'
+    let us = await this.userModel.findById(id).select('-password')
+    //@ts-ignore
+    if (us?.isDeleted) {
+      throw new BadRequestException('User is deleted')
     }
+    if (!us) {
+      throw new BadRequestException('Cannot found user')
+    }
+    return us
+
   }
 
   async findOneByUsername(email: string) {
@@ -89,6 +90,9 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     let checkEmail = await this.findOneByUsername(updateUserDto.email)
     if (JSON.stringify(checkEmail?._id) !== JSON.stringify(id)) {
       throw new BadRequestException('Email is used')
@@ -106,6 +110,9 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     if (id === user._id) {
       throw new BadRequestException('Cannot delete yourself')
     }
@@ -126,6 +133,9 @@ export class UsersService {
   }
 
   async restore(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let restoreUser = await this.userModel.restore({ _id: id })
       if (restoreUser) {
@@ -168,6 +178,9 @@ export class UsersService {
     }
   }
   updateRefreshToken = async (refreshToken: string, _id: string) => {
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      throw new BadRequestException('ID is invalid')
+    }
     try {
       let updatedUser = await this.userModel.updateOne({ _id }, {
         refreshToken

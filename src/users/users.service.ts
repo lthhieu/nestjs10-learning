@@ -72,7 +72,7 @@ export class UsersService {
     if (id !== user._id) {
       throw new BadRequestException('Cannot watch other info')
     }
-    let us = await this.userModel.findById(id).select('-password')
+    let us = await this.userModel.findById(id).select('-password').populate({ path: 'role', select: { name: 1, _id: 1 } })
     //@ts-ignore
     if (us?.isDeleted) {
       throw new BadRequestException('User is deleted')
@@ -85,7 +85,7 @@ export class UsersService {
   }
 
   async findOneByUsername(email: string) {
-    let user = await this.userModel.findOne({ email })
+    let user = await this.userModel.findOne({ email }).populate({ path: 'role', select: { name: 1, permissions: 1 } })
     return user
   }
 
@@ -116,6 +116,9 @@ export class UsersService {
     if (id === user._id) {
       throw new BadRequestException('Cannot delete yourself')
     }
+    let foundUser = await this.userModel.findById(id)
+    if (foundUser.email === "admin@gmail.com")
+      throw new BadRequestException('Cannot delete admin account')
     try {
       let deletedUser = await this.userModel.softDelete({ _id: id })
       if (deletedUser) {

@@ -1,4 +1,5 @@
 import { IsArray, IsBoolean, IsMongoId, IsNotEmpty } from "class-validator";
+import mongoose from "mongoose";
 
 export class CreateRoleDto {
     @IsNotEmpty()
@@ -11,5 +12,5 @@ export class CreateRoleDto {
     @IsNotEmpty()
     @IsMongoId({ each: true })
     @IsArray()
-    permissions: string;
+    permissions: mongoose.Schema.Types.ObjectId[];
 }

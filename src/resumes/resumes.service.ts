@@ -50,6 +50,10 @@ export class ResumesService {
       .sort(sort)
       .populate(population)
       .select(projection as any)
+      // .populate([
+      //   { path: 'companyId', select: { name: 1, logo: 1 } },
+      //   { path: 'jobId', select: { name: 1 } }
+      // ])
       .exec()
     return {
       meta: {
@@ -121,7 +125,10 @@ export class ResumesService {
     }
   }
   async fetchResumeByUserId(user: IUser) {
-    let resumes = await this.resumeModel.find({ userId: user._id })
+    let resumes = await this.resumeModel.find({ userId: user._id }).sort('-createdAt').populate([
+      { path: 'companyId', select: { name: 1 } },
+      { path: 'jobId', select: { name: 1 } }
+    ])
     return resumes
   }
 

@@ -6,11 +6,13 @@ import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
 import { Response, response } from 'express';
+import { RolesService } from 'src/roles/roles.service';
 @Injectable()
 export class AuthService {
     constructor(private usersService: UsersService,
         private jwtService: JwtService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private rolesService: RolesService
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -18,7 +20,13 @@ export class AuthService {
         if (user) {
             const isValidPassword = this.usersService.comparePassword(pass, user.password)
             if (isValidPassword) {
-                return user;
+                // Convert object to string
+                const jsonString = JSON.stringify(user)
+                // Convert string back to plain object
+                const rawObject = JSON.parse(jsonString)
+                let role = (await this.rolesService.findOne(rawObject.role._id)) as any
+                rawObject.permissions = role?.permissions ?? []
+                return rawObject;
             }
         }
         return null;
@@ -36,7 +44,7 @@ export class AuthService {
         })
         return {
             access_token: this.jwtService.sign(payload),
-            user: { _id, email, name, role }
+            user: { _id, email, name, role, permissions: user.permissions }
         };
     }
     async register(registerUserDto: RegisterUserDto) {
@@ -64,6 +72,10 @@ export class AuthService {
                 const refresh_token = this.createRefreshToken(payload)
                 //update refresh token to database
                 await this.usersService.updateRefreshToken(refresh_token, id)
+                //fetch user's role
+                const jsonString = JSON.stringify(user)
+                const rawObject = JSON.parse(jsonString)
+                let roles = await this.rolesService.findOne(rawObject.role._id) as any
                 //set refresh token to cookies
                 response.cookie('refresh_token', refresh_token, {
                     httpOnly: true,
@@ -71,7 +83,7 @@ export class AuthService {
                 })
                 return {
                     access_token: this.jwtService.sign(payload),
-                    user: { _id, email, name, role }
+                    user: { _id, email, name, role, permissions: roles.permissions ?? [] }
                 };
             } else {
                 throw new BadRequestException('Refresh token is invalid. Please login! in users')

@@ -9,9 +9,12 @@ import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
 import { IUser } from './users.interface';
 import mongoose from 'mongoose';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>) { }
+  constructor(@InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>) { }
   hashPassword = (plainText: string) => {
     let salt = genSaltSync(10);
     let hash = hashSync(plainText, salt);
@@ -85,7 +88,8 @@ export class UsersService {
   }
 
   async findOneByUsername(email: string) {
-    let user = await this.userModel.findOne({ email }).populate({ path: 'role', select: { name: 1, permissions: 1 } })
+    let user = await this.userModel.findOne({ email })
+      .populate({ path: 'role', select: { name: 1 } })
     return user
   }
 
@@ -117,7 +121,10 @@ export class UsersService {
       throw new BadRequestException('Cannot delete yourself')
     }
     let foundUser = await this.userModel.findById(id)
-    if (foundUser.email === "admin@gmail.com")
+    if (!foundUser) {
+      throw new BadRequestException('Cannot find user')
+    }
+    if (foundUser?.email === "admin@gmail.com")
       throw new BadRequestException('Cannot delete admin account')
     try {
       let deletedUser = await this.userModel.softDelete({ _id: id })
@@ -174,8 +181,10 @@ export class UsersService {
     if (checkEmail) {
       throw new BadRequestException('Email is existed')
     }
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE })
+
     let hash = this.hashPassword(registerUserDto.password)
-    let user = await this.userModel.create({ ...registerUserDto, password: hash, role: 'USER' })
+    let user = await this.userModel.create({ ...registerUserDto, password: hash, role: userRole._id })
     return {
       _id: user?._id
     }
@@ -195,5 +204,6 @@ export class UsersService {
   }
   findUserByToken = async (refreshToken: string) => {
     return await this.userModel.findOne({ refreshToken }).select('-password')
+      .populate({ path: 'role', select: { name: 1 } })
   }
 }

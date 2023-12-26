@@ -8,6 +8,7 @@ import { IUser } from 'src/users/users.interface';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
+import { ADMIN_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class RolesService {
@@ -109,7 +110,7 @@ export class RolesService {
       throw new BadRequestException('ID is invalid')
     }
     let foundRole = await this.roleModel.findById(id)
-    if (foundRole.name === "ADMIN")
+    if (foundRole?.name === ADMIN_ROLE)
       throw new BadRequestException('Cannot delete admin role')
     try {
       let deletedRole = await this.roleModel.softDelete({ _id: id })

@@ -29,9 +29,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             throw err || new UnauthorizedException('Invalid token or Not found token from header');
         }
         const targetMethod = request.method
-        const targetPath = request.route.path
+        const targetPath = request.route.path as string
         const permissions = user?.permissions ?? []
-        const isExist = permissions.find(item => targetMethod === item.method && targetPath === item.apiPath)
+        let isExist = permissions.find(item => targetMethod === item.method && targetPath === item.apiPath)
+        if (targetPath.startsWith('/api/v1/auth')) isExist = true
         if (!isExist) {
             throw new ForbiddenException("You don't have permission to access endpoint")
         }

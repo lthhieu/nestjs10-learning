@@ -516,6 +516,86 @@ export const INIT_PERMISSIONS = [
         "createdAt": "2023-06-15T09:13:52.798Z",
         "updatedAt": "2023-06-15T09:13:52.798Z",
         "__v": 0
+    },
+    {
+        "_id": "658cceec088aa727961d7f04",
+        "name": "Create a Subscriber",
+        "apiPath": "/api/v1/subscribers",
+        "method": "POST",
+        "module": "SUBSCRIBERS",
+        "createdBy": {
+            "_id": "647b5108a8a243e8191855b5",
+            "email": "hieulth@gmail.com"
+        },
+        "isDeleted": false,
+        "deletedAt": null,
+        "createdAt": "2023-06-15T09:13:52.798Z",
+        "updatedAt": "2023-06-15T09:13:52.798Z",
+        "__v": 0
+    },
+    {
+        "_id": "658ccf82088aa727961d7f1c",
+        "name": "Fetch subscribers with pagination",
+        "apiPath": "/api/v1/subscribers",
+        "method": "GET",
+        "module": "SUBSCRIBERS",
+        "createdBy": {
+            "_id": "647b5108a8a243e8191855b5",
+            "email": "hieulth@gmail.com"
+        },
+        "isDeleted": false,
+        "deletedAt": null,
+        "createdAt": "2023-06-15T09:13:52.798Z",
+        "updatedAt": "2023-06-15T09:13:52.798Z",
+        "__v": 0
+    },
+    {
+        "_id": "658ccf77088aa727961d7f16",
+        "name": "Fetch subscriber by id",
+        "apiPath": "/api/v1/subscribers/info",
+        "method": "GET",
+        "module": "SUBSCRIBERS",
+        "createdBy": {
+            "_id": "647b5108a8a243e8191855b5",
+            "email": "hieulth@gmail.com"
+        },
+        "isDeleted": false,
+        "deletedAt": null,
+        "createdAt": "2023-06-15T09:13:52.798Z",
+        "updatedAt": "2023-06-15T09:13:52.798Z",
+        "__v": 0
+    },
+    {
+        "_id": "658ccf6c088aa727961d7f10",
+        "name": "Update a Subscriber",
+        "apiPath": "/api/v1/subscribers/:id",
+        "method": "PATCH",
+        "module": "SUBSCRIBERS",
+        "createdBy": {
+            "_id": "647b5108a8a243e8191855b5",
+            "email": "hieulth@gmail.com"
+        },
+        "isDeleted": false,
+        "deletedAt": null,
+        "createdAt": "2023-06-15T09:13:52.798Z",
+        "updatedAt": "2023-06-15T09:13:52.798Z",
+        "__v": 0
+    },
+    {
+        "_id": "658ccf60088aa727961d7f0a",
+        "name": "Delete a Subscriber",
+        "apiPath": "/api/v1/subscribers/:id",
+        "method": "DELETE",
+        "module": "SUBSCRIBERS",
+        "createdBy": {
+            "_id": "647b5108a8a243e8191855b5",
+            "email": "hieulth@gmail.com"
+        },
+        "isDeleted": false,
+        "deletedAt": null,
+        "createdAt": "2023-06-15T09:13:52.798Z",
+        "updatedAt": "2023-06-15T09:13:52.798Z",
+        "__v": 0
     }
 ]
 export const INIT_COMPANIES = [

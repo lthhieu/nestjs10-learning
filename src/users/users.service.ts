@@ -29,6 +29,9 @@ export class UsersService {
       throw new BadRequestException('Email is existed')
     }
     let hash = this.hashPassword(createUserDto.password)
+    const role = await this.roleModel.findOne({ _id: createUserDto.role })
+    if (!role)
+      throw new BadRequestException('Role ID is not exist')
     let createNewUser = await this.userModel.create({
       ...createUserDto, password: hash, createdBy: {
         _id: user._id, email: user.email

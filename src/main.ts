@@ -34,6 +34,8 @@ async function bootstrap() {
 
   //===========
   app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.setViewEngine('hbs');
 
   //auto-validation
   app.useGlobalPipes(new ValidationPipe());

@@ -2,12 +2,19 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
-import { ResponseMessage, User } from 'src/decorators/customize';
+import { ResponseMessage, SkipPermission, User } from 'src/decorators/customize';
 import { IUser } from 'src/users/users.interface';
 
 @Controller('subscribers')
 export class SubscribersController {
   constructor(private readonly subscribersService: SubscribersService) { }
+
+  @Post('skills')
+  @SkipPermission()
+  @ResponseMessage("Get subscriber's skills")
+  getUserSkills(@User() user: IUser) {
+    return this.subscribersService.getSkills(user);
+  }
 
   @Post()
   @ResponseMessage('Created new subscriber successfully')
@@ -27,10 +34,11 @@ export class SubscribersController {
     return this.subscribersService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch()
+  @SkipPermission()
   @ResponseMessage('Updated subscriber\'s status successfully')
-  update(@Param('id') id: string, @Body() updateJobDto: UpdateSubscriberDto, @User() user: IUser) {
-    return this.subscribersService.update(id, updateJobDto, user);
+  update(@Body() updateJobDto: UpdateSubscriberDto, @User() user: IUser) {
+    return this.subscribersService.update(updateJobDto, user);
   }
 
   @Delete(':id')

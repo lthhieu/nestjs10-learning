@@ -76,21 +76,13 @@ export class SubscribersService {
     return subscriber
   }
 
-  async update(id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('ID is invalid')
-    }
-    //check email
-    let checkEmail = await this.subscriberModel.findOne({ email: updateSubscriberDto.email })
-    if (JSON.stringify(checkEmail?._id) !== JSON.stringify(id)) {
-      throw new BadRequestException('Email is used')
-    }
+  async update(updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
     try {
-      let updatedSubscriber = await this.subscriberModel.updateOne({ _id: id }, {
+      let updatedSubscriber = await this.subscriberModel.updateOne({ email: user.email }, {
         ...updateSubscriberDto, updatedBy: {
           _id: user._id, email: user.email
         }
-      })
+      }, { upsert: true })
       return updatedSubscriber
     } catch (e) {
       return 'Not found subscriber update function'
@@ -112,5 +104,9 @@ export class SubscribersService {
       throw new BadRequestException("Cannot delete because not found subs")
     }
     return await this.subscriberModel.softDelete({ _id: id })
+  }
+  async getSkills(user: IUser) {
+    const { email } = user
+    return await this.subscriberModel.findOne({ email }, { skills: 1 })
   }
 }

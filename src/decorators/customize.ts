@@ -17,3 +17,7 @@ export const User = createParamDecorator(
         return request.user;
     },
 );
+
+//public true => uncheck permission
+export const IS_PUBLIC_PERMISSION = 'isPublicPermission';
+export const SkipPermission = () => SetMetadata(IS_PUBLIC_PERMISSION, true);

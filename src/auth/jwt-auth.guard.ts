@@ -27,6 +27,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         const isSkipPermission = this.reflector.get<boolean>(IS_PUBLIC_PERMISSION, ctx.getHandler());
         // You can throw an exception based on either "info" or "err" arguments
         if (err || !user) {
+            if (isSkipPermission) { return user; }
             throw err || new UnauthorizedException('Invalid token or Not found token from header');
         }
         const targetMethod = request.method

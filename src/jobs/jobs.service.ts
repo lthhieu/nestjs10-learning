@@ -10,11 +10,14 @@ import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
 import dayjs from 'dayjs';
 import mongoose from 'mongoose';
+import { UsersService } from 'src/users/users.service';
+import { HR_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class JobsService {
   constructor(@InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
-    private companiesService: CompaniesService) { }
+    private companiesService: CompaniesService,
+    private usersService: UsersService) { }
   async findOneByName(name: string) {
     let job = await this.jobModel.findOne({ name })
     return job
@@ -42,7 +45,8 @@ export class JobsService {
     }
   }
 
-  async findAll(page: number, limit: number, queryString: string) {
+  async findAll(page: number, limit: number, queryString: string, user: IUser) {
+    //=====
     let { filter, population } = aqp(queryString)
     let { sort }: { sort: any } = aqp(queryString)
     delete filter.current
@@ -57,6 +61,30 @@ export class JobsService {
     if (isEmpty(sort)) {
       sort = "-updatedAt"
     }
+    //get user info
+    if (user?._id) {
+      let userInfo = await this.usersService.findOne(user?._id, user)
+      if (userInfo?.role?.name === HR_ROLE) {
+        let jobs = await this.jobModel.find({
+          'company._id': userInfo.company._id
+        })
+          .skip(offset)
+          .limit(defaultLimit)
+          .sort(sort)
+          .populate(population)
+          .exec()
+        return {
+          meta: {
+            current: page, //trang hiện tại
+            pageSize: defaultLimit, //số lượng bản ghi đã lấy
+            pages: totalPages, //tổng số trang với điều kiện query
+            total: totalItems // tổng số phần tử (số bản ghi)
+          },
+          result: jobs
+        }
+      }
+    }
+
     let jobs = await this.jobModel.find(filter)
       .skip(offset)
       .limit(defaultLimit)

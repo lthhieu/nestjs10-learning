@@ -8,10 +8,13 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import aqp from 'api-query-params';
 import { isEmpty } from 'class-validator';
 import mongoose from 'mongoose';
+import { UsersService } from 'src/users/users.service';
+import { HR_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class ResumesService {
-  constructor(@InjectModel(Resume.name) private resumeModel: SoftDeleteModel<ResumeDocument>) { }
+  constructor(@InjectModel(Resume.name) private resumeModel: SoftDeleteModel<ResumeDocument>,
+    private usersService: UsersService) { }
   async create(createResumeDto: CreateResumeDto, user: IUser) {
     let createNewResume = await this.resumeModel.create({
       ...createResumeDto, userId: user._id, email: user.email, status: 'PENDING', history: [
@@ -29,7 +32,7 @@ export class ResumesService {
     }
   }
 
-  async findAll(page: number, limit: number, queryString: string) {
+  async findAll(page: number, limit: number, queryString: string, user: IUser) {
     let { filter, population, projection } = aqp(queryString)
     let { sort }: { sort: any } = aqp(queryString)
     delete filter.current
@@ -43,6 +46,34 @@ export class ResumesService {
 
     if (isEmpty(sort)) {
       sort = "-updatedAt"
+    }
+    if (user?._id) {
+
+      let userInfo = await this.usersService.findOne(user?._id, user)
+      if (userInfo?.role?.name === HR_ROLE) {
+        let resumes = await this.resumeModel.find({
+          companyId: userInfo.company._id
+        })
+          .skip(offset)
+          .limit(defaultLimit)
+          .sort(sort)
+          .populate(population)
+          .select(projection as any)
+          // .populate([
+          //   { path: 'companyId', select: { name: 1, logo: 1 } },
+          //   { path: 'jobId', select: { name: 1 } }
+          // ])
+          .exec()
+        return {
+          meta: {
+            current: page, //trang hiện tại
+            pageSize: defaultLimit, //số lượng bản ghi đã lấy
+            pages: totalPages, //tổng số trang với điều kiện query
+            total: totalItems // tổng số phần tử (số bản ghi)
+          },
+          result: resumes
+        }
+      }
     }
     let resumes = await this.resumeModel.find(filter)
       .skip(offset)

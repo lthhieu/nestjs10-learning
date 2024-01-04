@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put } from '@
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { Public, ResponseMessage, User } from 'src/decorators/customize';
+import { Public, ResponseMessage, SkipPermission, User } from 'src/decorators/customize';
 import { IUser } from 'src/users/users.interface';
 
 @Controller('jobs')
@@ -15,11 +15,11 @@ export class JobsController {
     return this.jobsService.create(createJobDto, user);
   }
 
-  @Public()
+  @SkipPermission()
   @Get()
   @ResponseMessage('Fetch list jobs with pagination')
-  findAll(@Query('current') page: string, @Query('pageSize') limit: string, @Query() queryString: string) {
-    return this.jobsService.findAll(+page, +limit, queryString);
+  findAll(@Query('current') page: string, @Query('pageSize') limit: string, @Query() queryString: string, @User() user: IUser) {
+    return this.jobsService.findAll(+page, +limit, queryString, user);
   }
 
   @Public()

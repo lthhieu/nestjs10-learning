@@ -2,23 +2,23 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put } from '@
 import { ResumesService } from './resumes.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
-import { ResponseMessage, User } from 'src/decorators/customize';
+import { ResponseMessage, SkipPermission, User } from 'src/decorators/customize';
 import { IUser } from 'src/users/users.interface';
 
 @Controller('resumes')
 export class ResumesController {
   constructor(private readonly resumesService: ResumesService) { }
-
+  @SkipPermission()
   @Post()
   @ResponseMessage('Created new CV successfully')
   create(@Body() createResumeDto: CreateResumeDto, @User() user: IUser) {
     return this.resumesService.create(createResumeDto, user);
   }
-
+  @SkipPermission()
   @Get()
   @ResponseMessage('Fetch list CVs with pagination')
-  findAll(@Query('current') page: string, @Query('pageSize') limit: string, @Query() queryString: string) {
-    return this.resumesService.findAll(+page, +limit, queryString);
+  findAll(@Query('current') page: string, @Query('pageSize') limit: string, @Query() queryString: string, @User() user: IUser) {
+    return this.resumesService.findAll(+page, +limit, queryString, user);
   }
 
   @Get('info')

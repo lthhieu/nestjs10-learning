@@ -21,8 +21,7 @@ import { Job, JobSchema } from 'src/jobs/schemas/job.schema';
             pass: configService.get<string>('EMAIL_AUTH_PASS')
           }
         },
-        // preview: configService.get<string>('EMAIL_PREVIEW') === 'true' ? true : false,
-        preview: true,
+        preview: configService.get<string>('EMAIL_PREVIEW') === 'true' ? true : false,
         template: {
           dir: __dirname + '/templates',
           adapter: new HandlebarsAdapter(),

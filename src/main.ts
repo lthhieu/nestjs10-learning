@@ -38,7 +38,9 @@ async function bootstrap() {
   app.setViewEngine('hbs');
 
   //auto-validation
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true
+  }));
 
   //config cookies
   app.use(cookieParser());

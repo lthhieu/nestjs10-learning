@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { MulterModuleOptions, MulterOptionsFactory } from "@nestjs/platform-express";
 import fs from "fs";
 import { diskStorage } from "multer";
@@ -49,8 +49,30 @@ export class MulterConfigService implements MulterOptionsFactory {
                     let finalName = `${baseName}-${Date.now()}${extName}`
                     cb(null, finalName)
                 }
-            })
+            }),
+            limits: {
+                fileSize: 1000 * 1024 // 1MB
+            },
+            fileFilter: (req, file, cb) => {
+                const allowedFileTypes = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'docx']
+                const fileExtension = file.originalname.split('.').pop().toLowerCase();
+                const isValidFileType = allowedFileTypes.includes(fileExtension);
+                if (!isValidFileType) {
+                    cb(new HttpException('Invalid file type', HttpStatus.UNPROCESSABLE_ENTITY), null);
+                } else
+                    cb(null, true);
+            }
         };
     }
 
 }
+// new ParseFilePipeBuilder()
+//       .addFileTypeValidator({
+//         fileType: /^(image\/jpeg|image\/png|application\/pdf)$/i, //use MIME type
+//       })
+//       .addMaxSizeValidator({
+//         maxSize: 1000 * 1024 // 1MB
+//       })
+//       .build({
+//         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+//       }),

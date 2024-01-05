@@ -33,6 +33,7 @@ export class ResumesService {
   }
 
   async findAll(page: number, limit: number, queryString: string, user: IUser) {
+    //khi vao trang của HR, HR chỉ có thể xem dc những jobs hoặc resumes của cty mình thôi
     let { filter, population, projection } = aqp(queryString)
     let { sort }: { sort: any } = aqp(queryString)
     delete filter.current

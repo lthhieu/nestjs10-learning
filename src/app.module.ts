@@ -16,9 +16,17 @@ import { DatabasesModule } from './databases/databases.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerConfigService } from './configs/throttler.config';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    // tham khảo: https://www.oneclickitsolution.com/blog/rate-limiting-using-throttler-in-nestjs/
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useClass: ThrottlerConfigService,
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -46,6 +54,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     SubscribersModule,
     MailModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard
+  }
+  ],
 })
 export class AppModule { }
